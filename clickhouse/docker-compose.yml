@@ -1,0 +1,26 @@
+services:
+  clickhouse:
+    image: ${CLICKHOUSE_IMAGE}
+    container_name: ${CLICKHOUSE_CONTAINER}
+    restart: unless-stopped
+
+    environment:
+      CLICKHOUSE_USER: ${CLICKHOUSE_USER}
+      CLICKHOUSE_PASSWORD: ${CLICKHOUSE_PASSWORD}
+
+    networks:
+      - fara
+
+    ports:
+      - "${CLICKHOUSE_HTTP_PORT}:8123"
+      - "${CLICKHOUSE_TCP_PORT}:9000"
+
+    volumes:
+      - clickhouse_data:/var/lib/clickhouse
+
+networks:
+  fara:
+    driver: bridge
+
+volumes:
+  clickhouse_data:
