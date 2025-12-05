@@ -1,0 +1,51 @@
+services:
+  postgres:
+    image: postgres:15
+    restart: always
+    volumes:
+      - db_data:/var/lib/postgresql/data
+    networks:
+      - fara
+    environment:
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+  hasura:
+    image: hasura/graphql-engine:v2.46.0
+    restart: always
+    ports:
+      - ${HASURA_PORT}:8080
+    networks:
+      - fara
+    environment:
+      HASURA_GRAPHQL_ADMIN_SECRET: ${HASURA_ADMIN_SECRET}
+      HASURA_GRAPHQL_DATABASE_URL: postgres://postgres:postgrespassword@postgres:5432/postgres
+      HASURA_GRAPHQL_ENABLE_CONSOLE: "true"
+      HASURA_GRAPHQL_DEV_MODE: "true"
+      HASURA_GRAPHQL_REDIS_URL: redis://:${REDIS_PASSWORD}@redis:6379
+      HASURA_GRAPHQL_RATE_LIMIT_REDIS_URL: "redis://:${REDIS_PASSWORD}@redis:6379"
+      HASURA_GRAPHQL_MAX_CACHE_SIZE: "200"
+      HASURA_GRAPHQL_METADATA_DEFAULTS: '{"backend_configs":{"dataconnector":{"clickhouse":{"uri":"http://data-connector-agent:8080"}}}}'
+      HASURA_GRAPHQL_ENABLE_ALLOWLIST: "true"
+      #HASURA_GRAPHQL_ENDPOINT:"endpoint"
+    depends_on:
+      data-connector-agent:
+        condition: service_healthy
+  data-connector-agent:
+    image: hasura/clickhouse-data-connector:v2.46.0
+    restart: always
+    ports:
+      - 8081:8080
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/health"]
+      interval: 5s
+      timeout: 10s
+      retries: 5
+      start_period: 5s
+    networks:
+      - fara
+volumes:
+  db_data:
+
+networks:
+  fara:
+    driver: bridge
+    external: true
