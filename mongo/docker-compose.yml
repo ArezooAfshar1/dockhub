@@ -1,0 +1,22 @@
+services:
+  mongo:
+    image: mongo:7.0
+    container_name: mongo_container
+    ports:
+      - "${MONGO_PORT}:27017"
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: ${MONGO_INITDB_ROOT_USERNAME}
+      MONGO_INITDB_ROOT_PASSWORD: ${MONGO_INITDB_ROOT_PASSWORD}
+      MONGO_INITDB_DATABASE: ${MONGO_INITDB_DATABASE}
+    volumes:
+      - mongo_data:/data/db
+    networks:
+      - fara
+    restart: unless-stopped
+
+volumes:
+  mongo_data:
+
+networks:
+  fara:
+    driver: bridge
